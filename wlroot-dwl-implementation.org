@@ -2,8 +2,7 @@
 #+title: Wayland, Wlroots e DWL
 #+OPTIONS: toc:3
 
-* Wlroots
-** Introduzione
+** Wlroots
 Wlroots è un protocollo pensato per composite manager "~equivalenti dei WM per X11 ma più complessi~" per Wayland protocols, esso consente di risolvere tutti quei
 problemi che il giovene protocollo grafico non è pensato; Tra cui la condivisione delle risorse:
  * Presentazione dello schermo tramite protocollo WebRTC;
@@ -14,7 +13,7 @@ problemi che il giovene protocollo grafico non è pensato; Tra cui la condivisio
  * etc.
 Questo migliora parecchio la possibilità di espandere e migliorare il nuovo stack protocollare che risulta mediamente più leggero, visto che non sfrutta il meccanismo
 *Client/Server*.
-** Che cosa ha creato?
+*** Che cosa ha creato?
 Wlroots ha creato una condizione in cui è diventato semplicissimo creare nuovi composite manager, infatti, tantissimi di quelli ad oggi utilizzati sono basati su di
 tra cui dwl, sway (/creato dallo stesso team di wlroots/), velox e tanti altri.
 
@@ -79,21 +78,18 @@ amatissimo da tutti Reaperiani (utilizzatori del software Reaper) e tutti i tecn
 *** Portal
 Portal è un pacchetto per *XDG* esso è stato pensato per poter utilizzare le risorse video, esso possiede delle estensioni per i vari ambienti grafici, e con questo
 è possibile sopperire alle mancanze prima citate.
-| *Pacchetto*                        | *Descrizione*                                       |
-| xdg-desktop-portal-dde             | supporto portal per Deepin desktop                  |
-| xdg-desktop-portal-gnome           | supporto portal per Gnome desktop                   |
-| xdg-desktop-portal-gtk             | supporto portal per le app GTK                      |
-| xdg-desktop-portal-kde             | supporto portal per KDE Plasma desktop              |
-| xdg-desktop-portal-hyprland        | supporto portal per Hyprland                        |
-|                                    | Tiling composite manager                            |
-| xdg-desktop-portal-termfilechooser | supporto portal per il                              |
-|                                    | term-file-chooser si associ in wlroots              |
-| *xdg-desktop-portal-wlr*           | supporto portal per wlroots (sway, dwl, velox, etc) |
-| xdg-desktop-portal-xapp            | supporto portal per xapp,                           |
-|                                    | tipicamente si utilizza per Cinnamon                |
-| xdg-desktop-portal-liri            | supporto portal per Liri desktop                    |
-| xdg-desktop-portal-td              | supporto portal per theDesk desktop                 |
-
+| *Pacchetto*                        | *Descrizione*                                                  |
+| xdg-desktop-portal-dde             | supporto portal per Deepin desktop                             |
+| xdg-desktop-portal-gnome           | supporto portal per Gnome desktop                              |
+| xdg-desktop-portal-gtk             | supporto portal per le app GTK                                 |
+| xdg-desktop-portal-kde             | supporto portal per KDE Plasma desktop                         |
+| xdg-desktop-portal-hyprland        | supporto portal per Hyprland Tiling composite manager          |
+| xdg-desktop-portal-termfilechooser | supporto portal per il term-file-chooser si associ in wlroots  |
+| *xdg-desktop-portal-wlr*           | supporto portal per wlroots (sway, dwl, velox, etc)            |
+| xdg-desktop-portal-xapp            | supporto portal per xapp, tipicamente si utilizza per Cinnamon |
+| xdg-desktop-portal-liri            | supporto portal per Liri desktop                               |
+| xdg-desktop-portal-td              | supporto portal per theDesk desktop                            |
+Quello che verrà trattato in questo documento è *xdg-desktop-portal-wlr* visto che si tratterà di dwl principalmente.
 *** Tabella riassuntiva
 | *Caratteristica*              | *X11*                     | *Wayland*                                                        |
 | Autore                        | Project Athena            | Kristian Høgsberg                                                |
