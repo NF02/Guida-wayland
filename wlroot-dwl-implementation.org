@@ -1,0 +1,180 @@
+#+author: Nicola Ferru
+#+title: Wayland, Wlroots e DWL
+#+OPTIONS: toc:3
+
+* Wlroots
+** Introduzione
+Wlroots è un protocollo pensato per composite manager "~equivalenti dei WM per X11 ma più complessi~" per Wayland protocols, esso consente di risolvere tutti quei
+problemi che il giovene protocollo grafico non è pensato; Tra cui la condivisione delle risorse:
+ * Presentazione dello schermo tramite protocollo WebRTC;
+ * Gestione dei DRM/KMS tra qui quelli per il render GPU;
+ * Gestione delle Periferiche di I/O;
+ * Integrazione con le funzionalità e le sessioni di systemD;
+ * xkbcommon, gestire le descrizioni della tastiera ed elaborare gli eventi chiave.
+ * etc.
+Questo migliora parecchio la possibilità di espandere e migliorare il nuovo stack protocollare che risulta mediamente più leggero, visto che non sfrutta il meccanismo
+*Client/Server*.
+** Che cosa ha creato?
+Wlroots ha creato una condizione in cui è diventato semplicissimo creare nuovi composite manager, infatti, tantissimi di quelli ad oggi utilizzati sono basati su di
+tra cui dwl, sway (/creato dallo stesso team di wlroots/), velox e tanti altri.
+
+* X11 Vs Wayland
+Per una più chiara esposizione dei punti è giusto fare prima delle premesse, andando a scindere X e Wayland, facendo capire queli sono le loro pecugliarità e i loro
+difetti, sapendo già in partenza che Wayland è il successo non spirituale di X, infatti, esso si distacca totalmente dalla filosofia usata in precedenza con X11 e
+adotta soluzioni più coerenti con i tempi e il buon senso.
+** X11
+Il protocollo e sistema per la gestione di finestre conosciuto con il nome di X Window System nasce nel lontano 1984, all'interno dell'athena project,
+organizzato dal MIT e il Digital Equipment Corporation, grazie anche ai denari di IBM che era interessato ad un sistema grafico GUI per UNIX che fosse funzionale per le
+esigenze dell'epoca, siamo negli anni 80 uno dei modelli più comuni è quello basato sui un calcolatore ad altissime prestazioni conosciuto come "mainframe" o in
+territorio nostrano come "cervellone" e una serie di terminali stupidi (*dispositivi a bassa potenza che servivano solo come punti di accesso*). Da questo deduciamo
+che esso fosse pensato per sistemi centralizzati, non sistemi indipendenti che svolgono anche la funzione di calcolo oltre che a quella di puro input/output.
+Ora, anche all'epoca fu criticato per diverse criticità, in primo luogo fa un numero criminoso di chiamate al sistema e anche lo scambio tra X e le finestre crea
+overhead di comunicazione, cosa che rendeva poco efficente il tutto, per di più nel tempo ha generato altre problematiche sviluppate con l'anzianità del protocollo tra
+cui il fatto che non si riesca a scrivere dei driver video degni di questo nome, il fatto che X vada a renderizzare solo gli elementi che al momento sono visualizzati
+nella schermata e quindi il render viene svolto passo passo, cosa che con i vecchi sistemi e l'hardware dell'epoca aveva senso, ma oggi è solo brutto e poco elegante.
+Adotta molte soluzioni che risultano poco funzionali al giorno d'oggi tra cui il fatto che non implementi direttamente tra cui la gestione delle periferiche che fanno
+un rigiro per diverse librerie e programmare un app per /X/ non è particolarmente pratico, tanto che negli anni sono nati i toolkit, visto che le librerie non sono ben
+pensate sul fronte degli strumenti dati gli sviluppatori. Questo modello ovviamente ha dei pregi, tra cui il fatto che possa esser utilizzato per sua natura con il
+protocollo SSH per utilizzare direttamente le finestre su una macchina remota in modo sicuramente più pratico di VNC o TeamViewer, infatti, basterà aver installato
+un client X sulla propria macchina e sarà possibile disegnare le finestre partendo dalle coordinate che vengono inviate dall'host, ma oltre questo se vediamo
+all'effettivo tutti i pregi che al momento gli utenti trovano sono dovuti alla semplice vecchiaia del suddetto protocollo, cosa che con il passare del tempo si sta
+sempre più assottigliando con il suo successore Wayland.
+Altra cosa da non sottovalutare è il fatto che non ci siano stato più aggiornamenti concreti dal 2012 cosa che comunque non è affatto positiva, se poi si prende anche
+in considerazione il fatto che il lock screen sia solo un app a schermo intero gli esiti nel caso in cui il codice dello stesso non sia solidissimo sono sufficentemente
+risibili con tanto di macchina utilizzabile al 100% da chiunque.
+
+
+** Wayland
+Wayland nasce nel 2008, l'autore originale è Kristian Høgsberg che in precedenza lavorò anche al X Window System e che poi vedendo l'avanzamento dei tempi, scelse di
+progettare un sistema che fosse meno dispendioso dichiamate, infatti, già da un po' di tempo girava l'idea che bypassando il server grafico le prestazioni fossero
+migliori (*cosa dimostrata empiricamente*), per questo motivo nasce il concetto di *composite manager* autonomo cioè che deve gestire eventuali comportamenti di
+periferiche di input/output oppore la trasparenza delle finestre, il loro posizionamento e l'interazione a più livelli, remdendo più istantaneo e meno verboso il tutto.
+Quindi funziona direttamente con un ottica client molto più minimale, nel frattempo viene adottato dal gruppo freedesktop che ad oggi continua a svilupparlo. 
+Ora, non che questo modello sia privo di problemi, ma sicuramente vedendo il suo attuale sviluppo sta andando ad introdurre sempre nuove feature che stanno rendendo
+Linux sempre più piacevole a lato desktop e anche mobile, se davvero dobbiamo trovare il diffetto è che in se e per se Wayland scarica davvero tutto il barire sul
+composite manager offrendogli solo gli strumenti per accedere alle risorse, per questo motivo se il suddetto non è scritto in modo idoneo i problemi che si riscontrano
+sono difersi, che possono andare dal più stupido problema con alcune app al non riuscire proprio a far comunicare corretamente i propri dispositivi.
+
+*** XWayland e le soluzioni di retro compatibilità
+Visto che comunque al momento l'utenza si trova in una fase di transizione sono nate soluzioni di comodo come per l'appunto XWayland, un micro server X ultra minimale
+che consente di far girare tutte quelle app non native che altrimenti non si potrebbero avviare, questa soluzione come qualunque emulazione potrebbe avere qualche
+piccolo problemino, anche se comunque ormai è abbastanza stabile, infatti, al giorno d'oggi non c'è più quella fatica nel utilizzare app pensate per X su Wayland.
+
+*** Gestione delle risorse
+Uno dei punti dolenti di Wayland soprattutto in passato è proprio la condivisione delle risorse, infatti, il fatto che ogni composite manager si trova ad aver tutto
+il carico del lavoro implica anche che per la condivisione delle risorse *audio/video* servano dei sistemi specifici pensati ad hoc per interfacciarsi con lo stesso,
+per quanto riguarda l'audio sotto Linux e Unix c'è sempre stato il servizio dedicato a quello ma fino a poco tempo fa ci si giostrava tra tre servizi differenti:
+ * *Alsa* - driver storico ma non molto complesso e soffre del problema che non può destinare a più di un app la stessa fonte audio;
+ * *Pulseaudio* - un driver audio che serviva a svecchiare un po' la situazione ma che si rivelò a tratti problematico sia per la qualità audio effettiva che per
+   il fatto che non risolvesse il problema della condivisione delle fonti;
+ * *sndio* - un driver audio buon e abbastanza minimale, sempre stato in secondo piano rispetto a Pulse ma sicuramente interessante per alcuni punti;
+ * *Jack* - il driver audio dedicato al pro-audio, utilizzato ma un po' macchinoso, comunque ha una buona qualità audio essendo lineare e consentiva la condivisione
+   delle fonti audio visto lo scopo per cui era destinato, peccato che essendo un driver per scopi di produzione audio non tutte le app desktop lo supportavano e
+   se questo non bastava ogni tanto entrava pure in conflitto con pulseaudio cosa che rendeva scomodo il tutto.
+Per questi problemi di comune amministrazione negli anni è stata sviluppata un alternativa Pipewire, che accorpa al suo interno sia le funzioni video che audio,
+infatti al suo interno prevede un modulo per la funzione video con *portal* per la presentazione e condivisione schermo con WebRTC, un componente audio che prevede
+il supporto al vecchio alsa, pulse e jack, mettendosi su quei canali di ascolto e consentendo di utilizzare comodamente tutte le fonti anche per il proaudio, driver
+amatissimo da tutti Reaperiani (utilizzatori del software Reaper) e tutti i tecnici sonori, musicisti e dj. Se ciò non dovesse oltre tutto bastare esso funziona
+"Out Of The Box" quindi anche il neofita o il non sistemista può installarlo e utilizzarlo.
+*** Portal
+Portal è un pacchetto per *XDG* esso è stato pensato per poter utilizzare le risorse video, esso possiede delle estensioni per i vari ambienti grafici, e con questo
+è possibile sopperire alle mancanze prima citate.
+| *Pacchetto*                        | *Descrizione*                                       |
+| xdg-desktop-portal-dde             | supporto portal per Deepin desktop                  |
+| xdg-desktop-portal-gnome           | supporto portal per Gnome desktop                   |
+| xdg-desktop-portal-gtk             | supporto portal per le app GTK                      |
+| xdg-desktop-portal-kde             | supporto portal per KDE Plasma desktop              |
+| xdg-desktop-portal-hyprland        | supporto portal per Hyprland                        |
+|                                    | Tiling composite manager                            |
+| xdg-desktop-portal-termfilechooser | supporto portal per il                              |
+|                                    | term-file-chooser si associ in wlroots              |
+| *xdg-desktop-portal-wlr*           | supporto portal per wlroots (sway, dwl, velox, etc) |
+| xdg-desktop-portal-xapp            | supporto portal per xapp,                           |
+|                                    | tipicamente si utilizza per Cinnamon                |
+| xdg-desktop-portal-liri            | supporto portal per Liri desktop                    |
+| xdg-desktop-portal-td              | supporto portal per theDesk desktop                 |
+
+*** Tabella riassuntiva
+| *Caratteristica*              | *X11*                     | *Wayland*                                                        |
+| Autore                        | Project Athena            | Kristian Høgsberg                                                |
+| Sviluppatori                  | X.Org Foundation          | freedesktop.org                                                  |
+| Modello                       | Clint/server              | Gestione diretta delle risorse tramite un composite manager      |
+| Anno del primo rilascio       | 1984                      | 2008                                                             |
+| Ultimo update                 | 2012                      | ancora in sviluppo attivo                                        |
+| implementazione di rifermento | TWM                       | Weston                                                           |
+| Defetti                       | overhead di comunicazione | tutto deve venir implmentato dal composite manager o chi per lui |
+
+
+* Utilizzo di portal e wlroots
+Un punto da non sottovalutare è proprio il fatto che per poter utilizzare corretamente il proprio composite manager sia necessario andare a configurare alcuni
+paramentri e alcuni file per consentire il corretto funzionamento di portal.
+** Installare dwl
+Nel caso di dwl sarà necessario in primo luogo scaricare i sorgenti e compilarlo, per questo basta andare sulla pagina Github del progetto e seguire i seguenti passi:
+#+begin_src sh
+  git clone https://github.com/djpohly/dwl
+  cd dwl
+  sudo pacman -S wlroots wayland-protocols xorg-xwayland bemenu foot
+  make 
+  #+end_src
+dopo aver compilato sarà possibile provarlo con ~./dwl~ oppure installarlo con:
+#+begin_src sh
+  sudo make install
+#+end_src
+
+** Installazione di portal
+Il primo passo è prioprio quello di andare ad installare portal, per fare ciò ogni distribuzione Linux ha previsto dei pacchetti e se comunque non è disponibile
+altrimenti è possibile pure andare a compilare il pacchetto da sorgenti.
+*** Arch Linux
+Su Arch basta scaricare questi due pacchetti, in modo da poter cominciare la configurazione
+#+begin_src sh
+sudo pacman -S xdg-desktop-portal-wlr xdg-desktop-portal-gtk
+#+end_src
+*** Manuale
+#+begin_src sh
+  git clone https://github.com/emersion/xdg-desktop-portal-wlr
+  cd xdg-desktop-portal-wlr
+  # Compilazione 
+  meson build
+  ninja -C build
+#+end_src
+Poi per installarlo:
+#+begin_src sh
+ninja -C build install
+#+end_src
+
+** Configurazione
+*** dwl
+In questo caso non avendo la possibilità diretta mandare in run il servizio la soluzione più semplice è creare uno script d'avvio per la sessione wayland, che in questo caso e stata chiamata goliardicamente ~startw~:
+#+begin_src
+#!/bin/env sh
+dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY
+export PATH=$PATH:$HOME/.local/bin/desktop_programs/
+export PATH=$PATH:$HOME/.local/bin/shell/
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
+export _JAVA_AWT_WM_NONREPARENTING=1
+export AWT_TOOLKIT=MToolkit
+
+env XDG_CURRENT_DESKTOP=sway dbus-run-session dwl -s 'dwlb -font "monospace:size=10"'
+#+end_src
+In questo caso il flag ~XDG_CURRENT_DESKTOP~ è settato su ~sway~ perché altrimenti non va portal, poi bisogna creare la directory ~$HOME/.config/xdg-desktop-portal/portals.conf~ con il seguente contenuto:
+     #+begin_src config
+      [preferred]
+      default=wlr
+#+end_src
+e poi configurare ulteriormente un ultimo file che sta in ~$HOME/.config/xdg-desktop-porta-wlr/config~, nel caso in cui non sia presenta basta genarelo:
+#+begin_src config
+[screencast]
+output_name=eDP-1
+max_fps=30
+chooser_cmd=slurp -f %o -or
+chooser_type=simple
+#+end_src
+In questo campo potete impostare i framerate a 30fps o a 60fps "ricordando che i software di video conferenza hanno una intervallo che tipicamente non supera i 25fps".
+
+*** Sway
+Nel caso di Sway ci si trova davanti un abiente sostanzialmente già integrato, bisogna semplicemente aggiungere al file di configurazione alcune dritte, in file si trova in ~.config/sway/config~ oppure se non dovesse esser già stato
+copiato il file bisogna copiarlo da ~/etc/sway/config~, quindi il primo passo è quello di abilitare l'ambiente portal insequendo nel file:
+#+begin_src i3-wm
+  exec "dbus-update-activation-environment --systemd --all "
+  exec "dbus-update-activation-environment --systemd XDG_CURRENT_DESKTOP=sway "
+#+end_src
