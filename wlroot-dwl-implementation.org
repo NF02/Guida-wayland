@@ -100,7 +100,18 @@ Quello che verrà trattato in questo documento è *xdg-desktop-portal-wlr* visto
 | implementazione di rifermento | TWM                       | Weston                                                           |
 | Defetti                       | overhead di comunicazione | tutto deve venir implmentato dal composite manager o chi per lui |
 
-
+Wayland sono una serie di protocolli pensati per poter costruire un compositor manager, quindi al contrario di ~x11~ che ha nel proprio environment per essere funzionale:
+ * Window manager;
+ * Composite manager;
+ * gestore della tastiera;
+ * Gestore dei display;
+ * Window decorator;
+ * etc.
+Su wayland troviamo solo:
+ * comopositor manager - server;
+ * applicazioni - client.
+Già da questo si può dedurre che ci sia un alleggerimento non da poco visto che direttamente il compositor è il server, non c'è il server X che a sua volta poi caricherà il window manager
+che a sua volta permetterà di visualizzare le finestre con le decorazioni dell'ambiente in questione e tanto altro.
 * Utilizzo di portal e wlroots
 Un punto da non sottovalutare è proprio il fatto che per poter utilizzare corretamente il proprio composite manager sia necessario andare a configurare alcuni
 paramentri e alcuni file per consentire il corretto funzionamento di portal.
