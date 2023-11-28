@@ -1,4 +1,4 @@
-#+author: Nicola Ferru
+#+author: Nicola Ferru Aka NFVblog
 #+title: Wayland, Wlroots e DWL
 #+OPTIONS: toc:3
 
@@ -104,6 +104,7 @@ Quello che verrà trattato in questo documento è *xdg-desktop-portal-wlr* visto
 * Utilizzo di portal e wlroots
 Un punto da non sottovalutare è proprio il fatto che per poter utilizzare corretamente il proprio composite manager sia necessario andare a configurare alcuni
 paramentri e alcuni file per consentire il corretto funzionamento di portal.
+
 ** Installare dwl
 Nel caso di dwl sarà necessario in primo luogo scaricare i sorgenti e compilarlo, per questo basta andare sulla pagina Github del progetto e seguire i seguenti passi:
 #+begin_src sh
@@ -135,30 +136,29 @@ sudo pacman -S xdg-desktop-portal-wlr xdg-desktop-portal-gtk
 #+end_src
 Poi per installarlo:
 #+begin_src sh
-ninja -C build install
+  ninja -C build install
 #+end_src
 
 ** Configurazione
 *** dwl
 In questo caso non avendo la possibilità diretta mandare in run il servizio la soluzione più semplice è creare uno script d'avvio per la sessione wayland, che in questo caso e stata chiamata goliardicamente ~startw~:
-#+begin_src
+#+begin_src sh
 #!/bin/env sh
-dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY
 export PATH=$PATH:$HOME/.local/bin/desktop_programs/
 export PATH=$PATH:$HOME/.local/bin/shell/
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 export _JAVA_AWT_WM_NONREPARENTING=1
 export AWT_TOOLKIT=MToolkit
 
-env XDG_CURRENT_DESKTOP=sway dbus-run-session dwl -s 'dwlb -font "monospace:size=10"'
+env XDG_CURRENT_DESKTOP=sway dbus-run-session dwl -s dwl-bar
 #+end_src
 In questo caso il flag ~XDG_CURRENT_DESKTOP~ è settato su ~sway~ perché altrimenti non va portal, poi bisogna creare la directory ~$HOME/.config/xdg-desktop-portal/portals.conf~ con il seguente contenuto:
-     #+begin_src config
+     #+begin_src sh
       [preferred]
       default=wlr
 #+end_src
 e poi configurare ulteriormente un ultimo file che sta in ~$HOME/.config/xdg-desktop-porta-wlr/config~, nel caso in cui non sia presenta basta genarelo:
-#+begin_src config
+#+begin_src sh
 [screencast]
 output_name=eDP-1
 max_fps=30
@@ -170,7 +170,24 @@ In questo campo potete impostare i framerate a 30fps o a 60fps "ricordando che i
 *** Sway
 Nel caso di Sway ci si trova davanti un abiente sostanzialmente già integrato, bisogna semplicemente aggiungere al file di configurazione alcune dritte, in file si trova in ~.config/sway/config~ oppure se non dovesse esser già stato
 copiato il file bisogna copiarlo da ~/etc/sway/config~, quindi il primo passo è quello di abilitare l'ambiente portal insequendo nel file:
-#+begin_src i3-wm
+#+begin_src sh
   exec "dbus-update-activation-environment --systemd --all "
   exec "dbus-update-activation-environment --systemd XDG_CURRENT_DESKTOP=sway "
 #+end_src
+
+* Applicazioni che richiedono una variabile d'ambiente per girare sotto wayland
+** Firefox
+Visto che Firefox nativamente è pensato per girare su ~X11~ gli sviluppatori hanno scritto una modalità pensata per girare con wayland che deve essere
+attivata manualmente inserendo una variabile d'ambiente nel file della propria ~shell~ oppure ~file di start della sessione wayland~.
+#+begin_src sh
+  export MOZ_ENABLE_WAYLAND=1
+#+end_src
+Oppure se si ha a disposizione sia una sessione di x11 che una di wayland bisogna esprimerla nel seguente modo:
+#+begin_src sh
+if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+    export MOZ_ENABLE_WAYLAND=1
+fi
+#+end_src
+Nella variabile ~$XDG_SESSION_TYPE~ consiene al suo interno il tipo di sessione ~x11~ oppure ~wayland~. Con questo si va a guadagnare il vero pick to zoom, altre feature comode ma soprattutto si
+risolve un terrificante bug che rendo davvero scomodo questo browser altrimenti, infatti, in dwl se non si attiva il flag per wayland appena si prova a spostare i tab di firefox esso prederà
+la priorità assoluta avendo sempre il focus su di se ed impedendo l'utilizzo delle altre app.
