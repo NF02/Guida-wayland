@@ -12,7 +12,7 @@ problemi che il giovene protocollo grafico non è pensato; Tra cui la condivisio
  * xkbcommon, gestire le descrizioni della tastiera ed elaborare gli eventi chiave.
  * etc.
 Questo migliora parecchio la possibilità di espandere e migliorare il nuovo stack protocollare che risulta mediamente più leggero, visto che non sfrutta il meccanismo
-*Client/Server*.
+*Client/Server*. Almeno non inteso come in passato visto che adesso il compositor manager è anche il server grafico.
 *** Che cosa ha creato?
 Wlroots ha creato una condizione in cui è diventato semplicissimo creare nuovi composite manager, infatti, tantissimi di quelli ad oggi utilizzati sono basati su di
 tra cui dwl, sway (/creato dallo stesso team di wlroots/), velox e tanti altri.
