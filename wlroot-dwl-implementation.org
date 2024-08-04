@@ -164,9 +164,11 @@ export AWT_TOOLKIT=MToolkit
 env XDG_CURRENT_DESKTOP=sway dbus-run-session dwl -s dwl-bar
 #+end_src
 In questo caso il flag ~XDG_CURRENT_DESKTOP~ è settato su ~sway~ perché altrimenti non va portal, poi bisogna creare la directory ~$HOME/.config/xdg-desktop-portal/portals.conf~ con il seguente contenuto:
-     #+begin_src sh
-      [preferred]
-      default=wlr
+#+begin_src sh
+   [preferred]
+   default=gtk;wlr
+   org.freedesktop.impl.portal.ScreenCast=wlr
+   org.freedesktop.impl.portal.Screenshot=wlr
 #+end_src
 e poi configurare ulteriormente un ultimo file che sta in ~$HOME/.config/xdg-desktop-porta-wlr/config~, nel caso in cui non sia presenta basta genarelo:
 #+begin_src sh
